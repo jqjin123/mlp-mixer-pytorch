@@ -14,7 +14,7 @@ class PreNormResidual(nn.Module):
         return self.fn(self.norm(x)) + x
 
 def FeedForward(dim, expansion_factor = 4, dropout = 0., dense = nn.Linear):
-    inner_dim = int(dim * expansion_factor)
+    inner_dim = int(dim * expansion_factor)  # Ds or Dc
     return nn.Sequential(
         dense(dim, inner_dim),
         nn.GELU(),
@@ -30,7 +30,7 @@ def MLPMixer(*, image_size, channels, patch_size, dim, depth, num_classes, expan
     chan_first, chan_last = partial(nn.Conv1d, kernel_size = 1), nn.Linear
 
     return nn.Sequential(
-        Rearrange('b c (h p1) (w p2) -> b (h w) (p1 p2 c)', p1 = patch_size, p2 = patch_size),
+        Rearrange('b c (h p1) (w p2) -> b (h w) (p1 p2 c)', p1 = patch_size, p2 = patch_size),  # (b, num_batch, c*patch_size*pathch_size)_
         nn.Linear((patch_size ** 2) * channels, dim),
         *[nn.Sequential(
             PreNormResidual(dim, FeedForward(num_patches, expansion_factor, dropout, chan_first)),
